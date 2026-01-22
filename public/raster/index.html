@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线性光栅运动工具</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
+    </style>
+</head>
+<body>
+    <div class="mode-bar">
+        <button id="enterDadoBtn" class="btn">进入 DADO 模式</button>
+        <button id="exitDadoBtn" class="btn">返回光栅运动模式</button>
+    </div>
+
+    <div id="dadoContainer" class="dado-container">
+        <iframe id="dadoFrame" class="dado-iframe" src="dado/index.html" frameborder="0"></iframe>
+        <div class="dado-exit">
+            <button id="exitDadoBtn2" class="btn">返回光栅运动模式</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <header>
+                <h1>dado</h1>
+                <p class="subtitle">线性光栅运动工具</p>
+            </header>
+
+            <div class="control-group">
+                <h3>01. 来源</h3>
+                <div class="file-input-wrapper">
+                    <input type="file" id="videoInput" accept="video/mp4,video/quicktime,video/webm">
+                    <label for="videoInput" class="btn">上传视频</label>
+                    <span id="fileName">未选择文件</span>
+                </div>
+                
+                <!-- Video Preview -->
+                <div id="videoPreviewContainer" style="display:none; margin-top: 1rem;">
+                    <video id="videoPreview" controls style="width: 100%; border: 1px solid #ddd;"></video>
+                </div>
+                
+                <div class="slider-control">
+                    <label>帧数量: <span id="frameCountVal">8</span></label>
+                    <input type="range" id="frameCount" min="2" max="16" step="1" value="8">
+                </div>
+                
+                <div class="slider-control">
+                    <label>提取间隔 (秒): <span id="frameIntervalVal">0.5</span></label>
+                    <input type="range" id="frameInterval" min="0.1" max="2.0" step="0.1" value="0.5">
+                </div>
+
+                <!-- button id="processBtn" class="btn primary" disabled>提取与加工</button -->
+            </div>
+
+            <div class="control-group">
+                <h3>02. 画布</h3>
+                <div class="slider-control">
+                    <label>宽度 (px):</label>
+                    <input type="number" id="canvasWidth" class="input-number" value="500">
+                </div>
+                <div class="slider-control">
+                    <label>高度 (px):</label>
+                    <input type="number" id="canvasHeight" class="input-number" value="500">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>03. 栅格</h3>
+                <div class="slider-control">
+                    <label>扫描方向:</label>
+                    <select id="scanDirection" class="input-select">
+                        <option value="horizontal">水平扫描 (横线)</option>
+                        <option value="vertical">垂直扫描 (竖线)</option>
+                    </select>
+                </div>
+                <div class="slider-control">
+                    <label>线条密度: <span id="lineDensityVal">10</span></label>
+                    <input type="range" id="lineDensity" min="2" max="40" step="1" value="10">
+                </div>
+                <div class="slider-control">
+                    <label>线条粗细: <span id="lineThicknessVal">0.5</span></label>
+                    <input type="range" id="lineThickness" min="0.1" max="1.0" step="0.05" value="0.5">
+                </div>
+                <div class="slider-control">
+                    <label>线条颜色:</label>
+                    <input type="color" id="lineColor" value="#000000" style="width: 100%; height: 30px; padding: 0; border: none;">
+                </div>
+                <div class="checkbox-control">
+                    <input type="checkbox" id="invertMask">
+                    <label for="invertMask">反转掩码</label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>04. 动效</h3>
+                <div class="slider-control">
+                    <label>X轴偏移 / 帧: <span id="xOffsetVal">2</span></label>
+                    <input type="range" id="xOffset" min="-50" max="50" step="1" value="2">
+                </div>
+                <div class="checkbox-control">
+                    <input type="checkbox" id="interlaceMode" checked>
+                    <label for="interlaceMode">隔行扫描</label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>05. 叠加</h3>
+                <div class="checkbox-control">
+                    <input type="checkbox" id="showOverlay" checked>
+                    <label for="showOverlay">显示网格卡</label>
+                </div>
+                <div class="slider-control">
+                    <label>网格不透明度: <span id="gridOpacityVal">0.9</span></label>
+                    <input type="range" id="gridOpacity" min="0" max="1" step="0.05" value="0.9">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>06. 导出</h3>
+                <div class="slider-control">
+                    <label>导出倍率:</label>
+                    <select id="exportScale" class="input-select">
+                        <option value="1">1x (原尺寸)</option>
+                        <option value="2">2x (高清)</option>
+                        <option value="4">4x (超清)</option>
+                    </select>
+                </div>
+                <div class="actions">
+                    <button id="exportZipBtn" class="btn secondary">导出 ZIP 包</button>
+                </div>
+            </div>
+            
+            <div id="status" class="status-log">就绪。</div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <!-- Resize Handles -->
+                <div class="resize-handle handle-top" data-dir="top"></div>
+                <div class="resize-handle handle-right" data-dir="right"></div>
+                <div class="resize-handle handle-bottom" data-dir="bottom"></div>
+                <div class="resize-handle handle-left" data-dir="left"></div>
+                
+                <!-- Canvases will be injected here -->
+                <div id="loading" class="loading hidden">处理中...</div>
+            </div>
+            <div class="instructions">
+                将鼠标悬停在图像上即可移动光栅。
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

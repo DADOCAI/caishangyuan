@@ -1,0 +1,30 @@
+body {
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    font-family: monospace;
+    background-color: #ddd;
+  }
+  
+  #ui-panel {
+    width: 300px;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border-right: 1px solid #ccc;
+    overflow-y: auto;
+  }
+  
+  main {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #eee;
+  }
+  
+  canvas {
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  

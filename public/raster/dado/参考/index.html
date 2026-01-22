@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图像风格化工具</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.4;
+    }
+    
+    .container {
+      display: flex;
+      height: 100vh;
+      max-width: none;
+      width: 100%;
+      background: white;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: hidden;
+    }
+    
+    header {
+      display: none;
+    }
+    
+    .app-container {
+      display: flex;
+      flex-direction: row;
+      gap: 0;
+      padding: 0;
+      min-height: 100vh;
+      width: 100%;
+    }
+    
+    #ui-panel {
+      width: 280px;
+      background: #fafafa;
+      padding: 20px;
+      border-right: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      box-shadow: none;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    #canvas-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      border: none;
+      position: relative;
+      transition: all 0.3s ease;
+      min-height: 100vh;
+    }
+    
+    #canvas-wrapper.drag-over {
+      background: #f9f9f9;
+    }
+    
+    #canvas-container {
+      position: relative;
+      transition: transform 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    
+    .control-group label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .value-display {
+      font-size: 11px;
+      color: #999;
+      font-weight: 400;
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      min-width: 28px;
+      text-align: center;
+    }
+    
+    .control-group select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23999' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 8px center;
+      background-repeat: no-repeat;
+      background-size: 14px;
+    }
+
+    .control-group input[type="range"] {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: #e8e8e8;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    .control-group input[type="range"]::-webkit-slider-track {
+      height: 4px;
+      border-radius: 2px;
+      background: #e8e8e8;
+    }
+
+    .control-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #666;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+    }
+
+    .control-group input[type="range"]::-webkit-slider-thumb:hover {
+      background: #333;
+      transform: scale(1.1);
+    }
+
+    .control-group input[type="range"]::-moz-range-track {
+      height: 4px;
+      border-radius: 2px;
+      background: #e8e8e8;
+      border: none;
+    }
+
+    .control-group input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #666;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      border: none;
+    }
+    
+    .control-group select:focus {
+      outline: none;
+      border-color: #999;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .control-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      accent-color: #666;
+      cursor: pointer;
+    }
+
+    .control-group input[type="color"] {
+      width: 100%;
+      height: 36px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 2px;
+      background: white;
+    }
+
+    .control-group input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    .control-group input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 2px;
+    }
+    
+    .file-upload {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .file-upload input[type="file"] {
+      display: none;
+    }
+    
+    .file-upload-label {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 16px;
+      background: #666;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    
+    .file-upload-label:hover {
+      background: #333;
+    }
+    
+    .file-name {
+      font-size: 11px;
+      color: #999;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: #f5f5f5;
+      padding: 6px 8px;
+      border-radius: 3px;
+    }
+    
+    button {
+      background: #666;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button:hover {
+      background: #333;
+    }
+    
+    button:active {
+      transform: translateY(1px);
+    }
+
+    /* 快速选择按钮样式 */
+    .quick-select-buttons {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .quick-select-buttons button {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 11px;
+      background: #f0f0f0;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+
+    .quick-select-buttons button:hover {
+      background: #e0e0e0;
+      color: #333;
+      transform: none;
+    }
+
+    /* 下载按钮区域 */
+    .download-section {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .download-section button {
+      flex: 1;
+      font-size: 12px;
+      padding: 10px 12px;
+    }
+
+    /* 版权信息区域 */
+    .copyright-section {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #e8e8e8;
+    }
+
+    .copyright-info {
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .copyright-text {
+      font-size: 10px;
+      color: #999;
+      font-weight: 400;
+      line-height: 1.3;
+    }
+    
+    .loading {
+      display: none;
+      margin-top: 8px;
+      text-align: center;
+      color: #999;
+      font-size: 12px;
+      font-style: italic;
+      padding: 8px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      border: 1px solid #e8e8e8;
+    }
+    
+    .canvas-info {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 6px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      pointer-events: none;
+    }
+    
+    .footer {
+      display: none;
+    }
+
+    /* 隐藏选项的样式 */
+    .hidden-control {
+      display: none;
+    }
+
+    /* 分组样式 */
+    .control-section {
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #e8e8e8;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    @media (max-width: 1024px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+      }
+      
+      .app-container {
+        flex-direction: column;
+        min-height: auto;
+      }
+      
+      #ui-panel {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        max-height: 50vh;
+      }
+      
+      #canvas-wrapper {
+        min-height: 50vh;
+      }
+
+      .download-section {
+        flex-direction: column;
+      }
+
+      .download-section button {
+        flex: none;
+      }
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+      #ui-panel {
+        padding: 16px;
+      }
+
+      .control-group {
+        gap: 4px;
+        margin-bottom: 10px;
+      }
+
+      .control-section {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>图像风格化工具</h1>
+      <p class="description">上传或拖放图片，应用艺术效果，导出精美结果</p>
+    </header>
+    
+    <div class="app-container">
+      <div id="ui-panel">
+        <div class="panel-title">图像风格化工具</div>
+        
+        <div class="control-section">
+          <div class="section-title">图片上传</div>
+          <div class="control-group">
+            <div class="file-upload">
+              <label class="file-upload-label" for="file-input">选择图片</label>
+              <span id="file-name" class="file-name">未选择文件</span>
+              <input type="file" id="file-input" accept="image/*">
+            </div>
+            <div id="loading" class="loading">图片加载中...</div>
+          </div>
+        </div>
+        
+        <div class="control-section">
+          <div class="section-title">滤镜效果</div>
+          <div class="control-group">
+            <label for="filter-type">滤镜类型</label>
+            <select id="filter-type">
+              <option value="raster">莫尔条纹</option>
+              <option value="lines">线条效果</option>
+              <option value="grid">网格</option>
+              <option value="dots">点阵</option>
+              <option value="rough">粗糙纹理</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="control-section">
+          <div class="section-title">基础参数</div>
+          <div class="control-group">
+            <label for="line-spacing">线条间距 <span id="spacing-value" class="value-display">5</span></label>
+            <input type="range" id="line-spacing" min="2" max="30" value="5">
+          </div>
+          
+          <div class="control-group">
+            <label for="line-weight">线条粗细 <span id="weight-value" class="value-display">1</span></label>
+            <input type="range" id="line-weight" min="1" max="10" value="1">
+          </div>
+          
+          <div class="control-group">
+            <label for="brightness-threshold">亮度阈值 <span id="threshold-value" class="value-display">60</span></label>
+            <input type="range" id="brightness-threshold" min="0" max="100" value="60">
+          </div>
+        </div>
+        
+        <div class="control-section">
+          <div class="section-title">高级设置</div>
+          <!-- 线条效果专用参数 -->
+          <div class="control-group filter-specific" id="angle-control" style="display: none;">
+            <label for="angle">线条角度 <span id="angle-value" class="value-display">45</span></label>
+            <input type="range" id="angle" min="0" max="360" value="45">
+          </div>
+          
+          <!-- 线条效果快速选择 -->
+          <div class="control-group filter-specific" id="line-direction-control" style="display: none;">
+            <label>快速选择</label>
+            <div class="quick-select-buttons">
+              <button type="button" id="set-horizontal">水平</button>
+              <button type="button" id="set-vertical">垂直</button>
+            </div>
+          </div>
+          
+          <!-- 点阵专用参数 -->
+          <div class="control-group filter-specific" id="dot-variation-control" style="display: none;">
+            <label for="dot-size-variation">点大小变化 <span id="dot-size-variation-value" class="value-display">1.0</span></label>
+            <input type="range" id="dot-size-variation" min="0.5" max="3.0" step="0.1" value="1.0">
+          </div>
+          
+          <div class="control-group filter-specific" id="density-control" style="display: none;">
+            <label for="density-variation">密度变化率 <span id="density-variation-value" class="value-display">1.0</span></label>
+            <input type="range" id="density-variation" min="0.3" max="2.0" step="0.1" value="1.0">
+          </div>
+          
+          <!-- 线条类滤镜通用参数 -->
+          <div class="control-group filter-specific" id="contrast-control" style="display: none;">
+            <label for="contrast-sensitivity">对比度灵敏度 <span id="contrast-sensitivity-value" class="value-display">1.0</span></label>
+            <input type="range" id="contrast-sensitivity" min="0.0" max="2.0" step="0.1" value="1.0">
+          </div>
+          
+          <div class="control-group filter-specific" id="use-original-colors-group" style="display: none;">
+            <label for="use-original-colors">
+              <input type="checkbox" id="use-original-colors"> 使用原始图片颜色
+            </label>
+          </div>
+          
+          <div class="control-group" id="invert-colors-group">
+            <label for="invert-colors">
+              <input type="checkbox" id="invert-colors"> 反转线条
+            </label>
+          </div>
+        </div>
+        
+        <div class="control-section">
+          <div class="section-title">显示设置</div>
+                  <div class="control-group">
+            <label for="scale">图片缩放 <span id="scale-value" class="value-display">100</span></label>
+          <input type="range" id="scale" min="10" max="200" value="100">
+          <div style="font-size: 11px; color: #999; margin-top: 4px; font-style: italic;">*也可以使用滚轮进行图片放大/缩小功能</div>
+        </div>
+          
+          <div class="control-group">
+            <label for="line-color">线条颜色</label>
+            <input type="color" id="line-color" value="#000000">
+          </div>
+          
+          <div class="control-group">
+            <label for="bg-color">背景颜色</label>
+            <input type="color" id="bg-color" value="#ffffff">
+          </div>
+        </div>
+        
+        <div class="download-section">
+          <button id="download-btn">下载PNG</button>
+          <button id="svg-btn">导出SVG</button>
+        </div>
+        
+        <div class="copyright-section">
+          <div class="copyright-info">
+            <div class="logo">dadoooo</div>
+            <div class="copyright-text">© 2024 dadoooo. All rights reserved.</div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="canvas-wrapper">
+        <div id="canvas-container"></div>
+        <div class="canvas-info" id="canvas-info"></div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© C.V lab </p>
+    </div>
+  </div>
+  <script>
+    // Global variables
+    let img = null;
+    let canvas;
+    let isProcessing = false;
+    let canvasScale = 1;
+    let lastRenderTime = 0;
+    let renderTimeout = null;
+    let offsetX = 0; // 用于居中的偏移量
+    let offsetY = 0;
+    
+    // 预览模式相关变量
+    let isPreviewMode = false;
+    let previewTimeout = null;
+    let isDragging = false;
+
+    // 高性能节流函数
+    function throttle(func, delay) {
+      return function(...args) {
+        const now = Date.now();
+        if (now - lastRenderTime >= delay) {
+          lastRenderTime = now;
+          func.apply(this, args);
+        } else {
+          clearTimeout(renderTimeout);
+          renderTimeout = setTimeout(() => {
+            lastRenderTime = Date.now();
+            func.apply(this, args);
+          }, delay);
+        }
+      };
+    }
+
+    // 实时预览节流函数 - 专为滑块交互优化
+    function realtimeThrottle(func, previewDelay = 16, finalDelay = 300) {
+      let animationId = null;
+      let finalTimeout = null;
+      
+      return function(...args) {
+        // 取消之前的动画和超时
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        if (finalTimeout) {
+          clearTimeout(finalTimeout);
+        }
+        
+        // 立即进行低质量预览
+        animationId = requestAnimationFrame(() => {
+          isPreviewMode = true;
+          func.apply(this, args);
+          animationId = null;
+        });
+        
+        // 延迟进行高质量最终渲染
+        finalTimeout = setTimeout(() => {
+          isPreviewMode = false;
+          func.apply(this, args);
+          finalTimeout = null;
+        }, finalDelay);
+      };
+    }
+
+    function setup() {
+      canvas = createCanvas(500, 500);
+      canvas.parent('canvas-container');
+      noLoop();
+
+      document.getElementById('canvas-container').style.display = 'block';
+
+      // 初始化所有参数显示值
+      document.getElementById('spacing-value').textContent = document.getElementById('line-spacing').value;
+      document.getElementById('weight-value').textContent = document.getElementById('line-weight').value;
+      document.getElementById('threshold-value').textContent = document.getElementById('brightness-threshold').value;
+      document.getElementById('scale-value').textContent = document.getElementById('scale').value;
+      
+      // 初始化新参数显示值
+      document.getElementById('dot-size-variation-value').textContent = document.getElementById('dot-size-variation').value;
+      document.getElementById('density-variation-value').textContent = document.getElementById('density-variation').value;
+      document.getElementById('contrast-sensitivity-value').textContent = document.getElementById('contrast-sensitivity').value;
+
+      const fileInput = document.getElementById('file-input');
+      fileInput.addEventListener('change', handleFileInput);
+      document.getElementById('filter-type').addEventListener('change', throttle(handleFilterTypeChange, 100));
+      
+      // 使用实时预览节流的滑块控件
+      document.getElementById('line-spacing').addEventListener('input', realtimeThrottle(updateSpacing));
+      document.getElementById('line-weight').addEventListener('input', realtimeThrottle(updateWeight));
+      document.getElementById('brightness-threshold').addEventListener('input', realtimeThrottle(updateThreshold));
+      document.getElementById('dot-size-variation').addEventListener('input', realtimeThrottle(updateDotSizeVariation));
+      document.getElementById('density-variation').addEventListener('input', realtimeThrottle(updateDensityVariation));
+      document.getElementById('contrast-sensitivity').addEventListener('input', realtimeThrottle(updateContrastSensitivity));
+      document.getElementById('angle').addEventListener('input', realtimeThrottle(updateAngle));
+      
+      // 颜色和复选框使用较快的节流
+      document.getElementById('invert-colors').addEventListener('change', throttle(redraw, 50));
+      document.getElementById('line-color').addEventListener('input', throttle(redraw, 50));
+      document.getElementById('bg-color').addEventListener('input', throttle(redraw, 50));
+      
+      // 缩放保持原有逻辑
+      document.getElementById('scale').addEventListener('input', updateScale);
+      document.getElementById('download-btn').addEventListener('click', downloadImage);
+      document.getElementById('svg-btn').addEventListener('click', exportSVG);
+
+      // 添加快速选择按钮的事件监听
+      document.getElementById('set-horizontal').addEventListener('click', function() {
+        document.getElementById('angle').value = 0;
+        document.getElementById('angle-value').textContent = '0';
+        clearRenderCache();
+        redraw();
+      });
+      
+      document.getElementById('set-vertical').addEventListener('click', function() {
+        document.getElementById('angle').value = 90;
+        document.getElementById('angle-value').textContent = '90';
+        clearRenderCache();
+        redraw();
+      });
+
+      // 添加"使用原始颜色"复选框的事件监听
+      document.getElementById('use-original-colors').addEventListener('change', () => {
+        clearRenderCache();
+        redraw();
+      });
+
+      // 初始检查是否为光栅效果并隐藏反转线条选项
+      checkFilterType();
+
+      const canvasWrapper = document.getElementById('canvas-wrapper');
+      canvasWrapper.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        canvasWrapper.classList.add('drag-over');
+      });
+      canvasWrapper.addEventListener('dragleave', () => {
+        canvasWrapper.classList.remove('drag-over');
+      });
+      canvasWrapper.addEventListener('drop', (e) => {
+        e.preventDefault();
+        canvasWrapper.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.match('image.*')) {
+          document.getElementById('file-name').textContent = file.name;
+          handleFile(file);
+        } else {
+          alert('请上传有效的图片文件！');
+        }
+      });
+
+      // 添加滚轮缩放功能
+      canvasWrapper.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (!img) return; // 如果没有图片就不处理滚轮事件
+        
+        const scaleSlider = document.getElementById('scale');
+        const currentScale = parseInt(scaleSlider.value);
+        const scaleStep = 5; // 每次滚轮滚动的缩放步长
+        
+        let newScale;
+        if (e.deltaY < 0) {
+          // 向上滚动，放大
+          newScale = Math.min(200, currentScale + scaleStep);
+        } else {
+          // 向下滚动，缩小
+          newScale = Math.max(10, currentScale - scaleStep);
+        }
+        
+        // 更新滑块值和显示
+        scaleSlider.value = newScale;
+        document.getElementById('scale-value').textContent = newScale;
+        
+        // 应用缩放
+        canvasScale = newScale / 100;
+        document.getElementById('canvas-container').style.transform = `scale(${canvasScale})`;
+        updateCanvasInfo();
+      });
+
+      draw();
+    }
+
+    // 新参数更新函数
+    function updateDotSizeVariation() {
+      document.getElementById('dot-size-variation-value').textContent = this.value;
+      clearRenderCache();
+      redraw();
+    }
+
+    function updateDensityVariation() {
+      document.getElementById('density-variation-value').textContent = this.value;
+      clearRenderCache();
+      redraw();
+    }
+
+    function updateContrastSensitivity() {
+      document.getElementById('contrast-sensitivity-value').textContent = this.value;
+      clearRenderCache();
+      redraw();
+    }
+
+    function updateAngle() {
+      document.getElementById('angle-value').textContent = this.value;
+      clearRenderCache();
+      redraw();
+    }
+
+    // 处理滤镜类型变化
+    function handleFilterTypeChange() {
+      checkFilterType();
+      clearRenderCache();
+      redraw();
+    }
+
+    // 检查滤镜类型并处理参数控制的显示/隐藏
+    function checkFilterType() {
+      const filterType = document.getElementById('filter-type').value;
+      const invertColorsGroup = document.getElementById('invert-colors-group');
+      
+      // 隐藏所有滤镜特定的控制
+      document.querySelectorAll('.filter-specific').forEach(el => {
+        el.style.display = 'none';
+      });
+      
+      // 更新基础参数标签
+      updateParameterLabels(filterType);
+      
+      if (filterType === 'raster') {
+        // 如果是光栅效果，隐藏反转线条选项，显示原色功能
+        invertColorsGroup.classList.add('hidden-control');
+        document.getElementById('invert-colors').checked = false;
+        document.getElementById('use-original-colors-group').style.display = 'flex';
+      } else {
+        // 不是光栅效果，显示反转线条选项
+        invertColorsGroup.classList.remove('hidden-control');
+      }
+      
+      // 根据滤镜类型显示对应的参数控制
+      switch(filterType) {
+        case 'dots':
+          document.getElementById('dot-variation-control').style.display = 'flex';
+          document.getElementById('density-control').style.display = 'flex';
+          document.getElementById('use-original-colors-group').style.display = 'flex';
+          break;
+        case 'rough':
+          document.getElementById('use-original-colors-group').style.display = 'flex';
+          break;
+        case 'lines':
+          document.getElementById('angle-control').style.display = 'flex';
+          document.getElementById('line-direction-control').style.display = 'flex';
+          document.getElementById('contrast-control').style.display = 'flex';
+          break;
+        case 'grid':
+          document.getElementById('contrast-control').style.display = 'flex';
+          break;
+      }
+    }
+
+    // 根据滤镜类型更新参数标签
+    function updateParameterLabels(filterType) {
+      const spacingLabel = document.querySelector('label[for="line-spacing"]');
+      const weightLabel = document.querySelector('label[for="line-weight"]');
+      
+      switch(filterType) {
+        case 'raster':
+          spacingLabel.innerHTML = '条纹间距 <span id="spacing-value" class="value-display">' + document.getElementById('line-spacing').value + '</span>';
+          weightLabel.innerHTML = '条纹高度 <span id="weight-value" class="value-display">' + document.getElementById('line-weight').value + '</span>';
+          break;
+        case 'lines':
+          spacingLabel.innerHTML = '线条间距 <span id="spacing-value" class="value-display">' + document.getElementById('line-spacing').value + '</span>';
+          weightLabel.innerHTML = '线条粗细 <span id="weight-value" class="value-display">' + document.getElementById('line-weight').value + '</span>';
+          break;
+        case 'grid':
+          spacingLabel.innerHTML = '网格间距 <span id="spacing-value" class="value-display">' + document.getElementById('line-spacing').value + '</span>';
+          weightLabel.innerHTML = '网格粗细 <span id="weight-value" class="value-display">' + document.getElementById('line-weight').value + '</span>';
+          break;
+        case 'dots':
+          spacingLabel.innerHTML = '点状间距 <span id="spacing-value" class="value-display">' + document.getElementById('line-spacing').value + '</span>';
+          weightLabel.innerHTML = '点状大小 <span id="weight-value" class="value-display">' + document.getElementById('line-weight').value + '</span>';
+          break;
+        case 'rough':
+          spacingLabel.innerHTML = '纹理间距 <span id="spacing-value" class="value-display">' + document.getElementById('line-spacing').value + '</span>';
+          weightLabel.innerHTML = '纹理粗细 <span id="weight-value" class="value-display">' + document.getElementById('line-weight').value + '</span>';
+          break;
+        default:
+          spacingLabel.innerHTML = '线条间距 <span id="spacing-value" class="value-display">' + document.getElementById('line-spacing').value + '</span>';
+          weightLabel.innerHTML = '线条粗细 <span id="weight-value" class="value-display">' + document.getElementById('line-weight').value + '</span>';
+      }
+    }
+
+    function draw() {
+      if (isProcessing) return;
+      let bgColor = document.getElementById('bg-color').value;
+      background(bgColor);
+
+      if (img && img.width > 0) {
+        clear();
+        background(bgColor);
+        push();
+        translate(offsetX, offsetY); // 应用居中偏移
+        renderImage(img);
+        pop();
+      } else {
+        fill(100);
+        textAlign(CENTER, CENTER);
+        textSize(16);
+        text("请上传或拖放图片", width / 2, height / 2);
+      }
+      updateCanvasInfo();
+    }
+
+    function handleFileInput(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      document.getElementById('file-name').textContent = file.name;
+      handleFile(file);
+    }
+
+    function handleFile(file) {
+      if (!file.type.match('image.*')) {
+        alert('请上传有效的图片文件！');
+        document.getElementById('file-name').textContent = '';
+        return;
+      }
+
+      document.getElementById('loading').style.display = 'block';
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        loadImage(e.target.result,
+          function(loadedImg) {
+            img = loadedImg;
+            if (img.width > 0 && img.height > 0) {
+              resizeCanvasToImage(img);
+              redraw();
+            } else {
+              alert('图像尺寸无效，请尝试其他图片');
+              document.getElementById('file-name').textContent = '';
+            }
+            document.getElementById('loading').style.display = 'none';
+          },
+          function() {
+            document.getElementById('loading').style.display = 'none';
+            alert('图像加载失败，请尝试其他图片或检查文件格式');
+            document.getElementById('file-name').textContent = '';
+          }
+        );
+      };
+      reader.onerror = function() {
+        document.getElementById('loading').style.display = 'none';
+        alert('无法读取文件，请检查文件是否损坏');
+        document.getElementById('file-name').textContent = '';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resizeCanvasToImage(sourceImg) {
+      if (!sourceImg || sourceImg.width <= 0 || sourceImg.height <= 0) return;
+
+      const wrapper = document.getElementById('canvas-wrapper');
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const wrapperWidth = wrapperRect.width;
+      const wrapperHeight = wrapperRect.height;
+
+      const imgRatio = sourceImg.width / sourceImg.height;
+      let canvasWidth, canvasHeight;
+
+      if (wrapperWidth / wrapperHeight > imgRatio) {
+        canvasHeight = wrapperHeight * 0.9;
+        canvasWidth = canvasHeight * imgRatio;
+      } else {
+        canvasWidth = wrapperWidth * 0.9;
+        canvasHeight = canvasWidth / imgRatio;
+      }
+
+      sourceImg.resize(Math.round(canvasWidth), Math.round(canvasHeight));
+      resizeCanvas(Math.round(wrapperWidth), Math.round(wrapperHeight));
+
+      // 计算偏移量以居中图像
+      offsetX = (wrapperWidth - canvasWidth) / 2;
+      offsetY = (wrapperHeight - canvasHeight) / 2;
+
+      sourceImg.originalWidth = sourceImg.width;
+      sourceImg.originalHeight = sourceImg.height;
+      sourceImg.scaleRatio = 1;
+
+      canvasScale = 1;
+      document.getElementById('canvas-container').style.transform = 'scale(1)';
+      document.getElementById('scale').value = 100;
+      document.getElementById('scale-value').textContent = 100;
+
+      updateCanvasInfo();
+    }
+
+    function updateCanvasInfo() {
+      let infoElement = document.getElementById('canvas-info');
+      if (infoElement && canvas) {
+        let info = `画布: ${canvas.width} x ${canvas.height}px`;
+        if (img && img.originalWidth) {
+          info += ` | 原图: ${img.originalWidth} x ${img.originalHeight}px`;
+        }
+        infoElement.textContent = info;
+      }
+    }
+
+    function updateScale() {
+      let scaleValue = parseInt(this.value);
+      document.getElementById('scale-value').textContent = scaleValue;
+      canvasScale = scaleValue / 100;
+      document.getElementById('canvas-container').style.transform = `scale(${canvasScale})`;
+      updateCanvasInfo();
+    }
+
+    function updateSpacing() {
+      document.getElementById('spacing-value').textContent = this.value;
+      clearRenderCache();
+      redraw();
+    }
+
+    function updateWeight() {
+      document.getElementById('weight-value').textContent = this.value;
+      clearRenderCache();
+      redraw();
+    }
+
+    function updateThreshold() {
+      document.getElementById('threshold-value').textContent = this.value;
+      clearRenderCache();
+      redraw();
+    }
+
+    // 辅助函数：安全地获取像素颜色
+    function getPixelColorSafely(image, x, y) {
+      try {
+        x = Math.max(0, Math.min(image.width - 1, Math.floor(x)));
+        y = Math.max(0, Math.min(image.height - 1, Math.floor(y)));
+        return image.get(x, y);
+      } catch (error) {
+        console.error('Error getting pixel color:', error);
+        return color(0, 0, 0); // 返回黑色作为默认值
+      }
+    }
+
+    // 辅助函数：将p5.js颜色转换为十六进制字符串
+    function colorToHex(col) {
+      if (!col) return '#000000';
+      let r = Math.round(red(col)).toString(16).padStart(2, '0');
+      let g = Math.round(green(col)).toString(16).padStart(2, '0');
+      let b = Math.round(blue(col)).toString(16).padStart(2, '0');
+      return `#${r}${g}${b}`;
+    }
+
+    function renderImage(sourceImg, forcePreview = false) {
+      isProcessing = true;
+      let filterType = document.getElementById('filter-type').value;
+      let spacing = parseInt(document.getElementById('line-spacing').value);
+      let lineWeight = parseInt(document.getElementById('line-weight').value);
+      let brightnessThreshold = parseInt(document.getElementById('brightness-threshold').value);
+      let invertColors = document.getElementById('invert-colors').checked;
+      let lineColor = document.getElementById('line-color').value;
+      if (invertColors) {
+        brightnessThreshold = 100 - brightnessThreshold; // 仅反转亮度阈值，不反转颜色
+      }
+      
+      // 智能采样率控制 - 预览模式使用更激进的采样
+      let usePreview = forcePreview || isPreviewMode;
+      let samplingRate = 1;
+      if (usePreview) {
+        // 根据图像大小和滤镜类型智能调整采样率
+        let imageSize = sourceImg.width * sourceImg.height;
+        if (imageSize > 500000) { // 大图像
+          samplingRate = filterType === 'dots' || filterType === 'rough' ? 4 : 3;
+        } else if (imageSize > 200000) { // 中等图像
+          samplingRate = filterType === 'dots' || filterType === 'rough' ? 3 : 2;
+        } else { // 小图像
+          samplingRate = 2;
+        }
+      }
+
+      // 只为特定滤镜获取原色设置
+      let useOriginalColors = false;
+      if (filterType === 'raster' || filterType === 'dots' || filterType === 'rough') {
+        useOriginalColors = document.getElementById('use-original-colors').checked;
+      }
+
+      try {
+        switch(filterType) {
+          case 'raster':
+            drawRasterLines(sourceImg, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors, useOriginalColors);
+            break;
+          case 'lines':
+            drawLines(sourceImg, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors);
+            break;
+          case 'grid':
+            drawGrid(sourceImg, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors);
+            break;
+          case 'dots':
+            drawDots(sourceImg, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors, useOriginalColors);
+            break;
+          case 'rough':
+            drawRoughTexture(sourceImg, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors, useOriginalColors);
+            break;
+        }
+      } catch (error) {
+        console.error('渲染错误:', error);
+        fill(255, 0, 0);
+        textAlign(CENTER, CENTER);
+        textSize(16);
+        text("图像处理出错，请调整设置", width / 2, height / 2);
+      } finally {
+        isProcessing = false;
+      }
+    }
+
+    function drawLines(image, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors) {
+      // 获取角度和对比度灵敏度参数
+      let angle = parseInt(document.getElementById('angle') ? document.getElementById('angle').value : 45);
+      let contrastSensitivity = document.getElementById('contrast-sensitivity') ? 
+        parseFloat(document.getElementById('contrast-sensitivity').value) : 1.0;
+      
+      // 根据角度选择绘制方法
+      if (angle === 0) {
+        // 水平线条
+        for (let y = 0; y < image.height; y += spacing) {
+          let inSegment = false;
+          let segStartX = 0;
+          for (let x = 0; x < image.width; x += samplingRate) {
+            let pixelColor = getPixelColorSafely(image, x, y);
+            let b = brightness(pixelColor);
+            let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+            if (shouldDraw) {
+              if (!inSegment) {
+                inSegment = true;
+                segStartX = x;
+                
+                // 根据对比度灵敏度调整线条粗细
+                let dynamicWeight = lineWeight * (1 + (100 - b) / 100 * contrastSensitivity);
+                strokeWeight(Math.max(0.5, Math.min(dynamicWeight, lineWeight * 3)));
+                
+                stroke(lineColor);
+              }
+            } else if (inSegment) {
+              line(segStartX, y, x, y);
+              inSegment = false;
+            }
+          }
+          if (inSegment) {
+            line(segStartX, y, image.width, y);
+          }
+        }
+      } else if (angle === 90) {
+        // 垂直线条
+        for (let x = 0; x < image.width; x += spacing) {
+          let inSegment = false;
+          let segStartY = 0;
+          for (let y = 0; y < image.height; y += samplingRate) {
+            let pixelColor = getPixelColorSafely(image, x, y);
+            let b = brightness(pixelColor);
+            let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+            if (shouldDraw) {
+              if (!inSegment) {
+                inSegment = true;
+                segStartY = y;
+                
+                // 根据对比度灵敏度调整线条粗细
+                let dynamicWeight = lineWeight * (1 + (100 - b) / 100 * contrastSensitivity);
+                strokeWeight(Math.max(0.5, Math.min(dynamicWeight, lineWeight * 3)));
+                
+                stroke(lineColor);
+              }
+            } else if (inSegment) {
+              line(x, segStartY, x, y);
+              inSegment = false;
+            }
+          }
+          if (inSegment) {
+            line(x, segStartY, x, image.height);
+          }
+        }
+      } else {
+        // 斜线条
+        let angleRad = radians(angle);
+        strokeWeight(lineWeight);
+        let dx = cos(angleRad);
+        let dy = sin(angleRad);
+        let imgDiag = sqrt(sq(image.width) + sq(image.height));
+        let steps = Math.ceil((image.width + image.height) / spacing);
+        
+        for (let i = -steps; i < steps; i++) {
+          let startX = image.width / 2 + i * spacing * dy;
+          let startY = image.height / 2 - i * spacing * dx;
+          let inSegment = false;
+          let segStart = null;
+          let lastValid = null;
+          
+          for (let t = -imgDiag; t < imgDiag; t += samplingRate) {
+            let x = Math.round(startX + dx * t);
+            let y = Math.round(startY + dy * t);
+            if (x >= 0 && x < image.width && y >= 0 && y < image.height) {
+              lastValid = {x, y};
+              let pixelColor = getPixelColorSafely(image, x, y);
+              let b = brightness(pixelColor);
+              let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+              if (shouldDraw) {
+                if (!inSegment) {
+                  inSegment = true;
+                  segStart = {x, y};
+                  
+                  // 根据对比度灵敏度调整线条粗细
+                  let dynamicWeight = lineWeight * (1 + (100 - b) / 100 * contrastSensitivity);
+                  strokeWeight(Math.max(0.5, Math.min(dynamicWeight, lineWeight * 3)));
+                  
+                  stroke(lineColor);
+                }
+              } else if (inSegment) {
+                line(segStart.x, segStart.y, x, y);
+                inSegment = false;
+              }
+            } else if (inSegment && lastValid) {
+              line(segStart.x, segStart.y, lastValid.x, lastValid.y);
+              inSegment = false;
+            }
+          }
+          if (inSegment && lastValid) {
+            line(segStart.x, segStart.y, lastValid.x, lastValid.y);
+          }
+        }
+      }
+    }
+
+    // 绘制光栅效果
+    function drawRasterLines(image, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate = 1, invertColors, useOriginalColors) {
+      strokeWeight(1); // 光栅线使用固定的宽度
+      
+      for (let y = 0; y < image.height; y += spacing) {
+        for (let x = 0; x < image.width; x += samplingRate) {
+          let pixelColor = getPixelColorSafely(image, x, y);
+          let b = brightness(pixelColor);
+          let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+          
+          if (shouldDraw) {
+            // 根据亮度计算线条高度
+            let lineHeight = map(b, 0, brightnessThreshold, lineWeight * 2, 0);
+            
+            if (lineHeight > 0) {
+              // 根据useOriginalColors决定颜色
+              if (useOriginalColors) {
+                stroke(red(pixelColor), green(pixelColor), blue(pixelColor), alpha(pixelColor));
+              } else {
+                stroke(lineColor);
+              }
+              // 绘制以y为中心的垂直线段
+              line(x, y - lineHeight/2, x, y + lineHeight/2);
+            }
+          }
+        }
+      }
+    }
+
+    function drawGrid(image, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors) {
+      // 保存当前角度
+      let originalAngle = document.getElementById('angle').value;
+      
+      // 绘制水平线条
+      document.getElementById('angle').value = 0;
+      drawLines(image, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors);
+      
+      // 绘制垂直线条
+      document.getElementById('angle').value = 90;
+      drawLines(image, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors);
+      
+      // 恢复原始角度
+      document.getElementById('angle').value = originalAngle;
+    }
+
+    function drawDots(image, spacing, dotSize, brightnessThreshold, lineColor, samplingRate, invertColors, useOriginalColors) {
+      noStroke();
+      
+      // 获取点阵的新参数
+      let dotSizeVariation = document.getElementById('dot-size-variation') ? 
+        parseFloat(document.getElementById('dot-size-variation').value) : 1.0;
+      let densityVariation = document.getElementById('density-variation') ? 
+        parseFloat(document.getElementById('density-variation').value) : 1.0;
+      
+      let actualSpacing = Math.max(2, spacing / densityVariation);
+      
+      for (let x = 0; x < image.width; x += actualSpacing) {
+        for (let y = 0; y < image.height; y += actualSpacing) {
+          let pixelColor = getPixelColorSafely(image, x, y);
+          let b = brightness(pixelColor);
+          let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+          if (shouldDraw) {
+            // 根据useOriginalColors决定颜色
+            if (useOriginalColors) {
+              fill(red(pixelColor), green(pixelColor), blue(pixelColor), alpha(pixelColor));
+            } else {
+              fill(lineColor);
+            }
+            // 增强的尺寸计算
+            let baseSize = map(b, 0, 100, dotSize * dotSizeVariation * 2, dotSize);
+            let finalSize = Math.max(0.5, baseSize);
+            ellipse(x, y, finalSize, finalSize);
+          }
+        }
+      }
+    }
+
+    function drawRoughTexture(image, spacing, lineWeight, brightnessThreshold, lineColor, samplingRate, invertColors, useOriginalColors) {
+      strokeWeight(lineWeight);
+      let noiseScale = 0.05;
+      let strokeLength = spacing * 0.8;
+      let density = Math.max(2, Math.floor(spacing / (4 * samplingRate)));
+      
+      for (let y = 0; y < image.height; y += spacing) {
+        for (let x = 0; x < image.width; x += spacing) {
+          let avgBrightness = 0;
+          let count = 0;
+          for (let sy = 0; sy < spacing && y + sy < image.height; sy += samplingRate * 2) {
+            for (let sx = 0; sx < spacing && x + sx < image.width; sx += samplingRate * 2) {
+              let pixelColor = getPixelColorSafely(image, x + sx, y + sy);
+              avgBrightness += brightness(pixelColor);
+              count++;
+            }
+          }
+          avgBrightness = count > 0 ? avgBrightness / count : 255;
+          let shouldDraw = invertColors ? avgBrightness > brightnessThreshold : avgBrightness < brightnessThreshold;
+          if (shouldDraw) {
+            // 根据useOriginalColors决定颜色
+            if (useOriginalColors) {
+              let sampleColor = getPixelColorSafely(image, x, y);
+              stroke(red(sampleColor), green(sampleColor), blue(sampleColor), alpha(sampleColor));
+            } else {
+              stroke(lineColor);
+            }
+            randomSeed(x * 10000 + y);
+            for (let i = 0; i < density; i++) {
+              let startX = x + random(spacing);
+              let startY = y + random(spacing);
+              let angle = noise(startX * noiseScale, startY * noiseScale) * TWO_PI;
+              let endX = startX + cos(angle) * strokeLength * random(0.5, 1.5);
+              let endY = startY + sin(angle) * strokeLength * random(0.5, 1.5);
+              let midX = (startX + endX) / 2 + random(-spacing/4, spacing/4);
+              let midY = (startY + endY) / 2 + random(-spacing/4, spacing/4);
+              beginShape();
+              noFill();
+              vertex(startX, startY);
+              quadraticVertex(midX, midY, endX, endY);
+              endShape();
+            }
+          }
+        }
+      }
+    }
+
+    // SVG Export Functions
+    // 收集莫尔条纹的SVG元素
+    function collectRasterSVG(image, spacing, lineWeight, brightnessThreshold, lineColor, invertColors, useOriginalColors) {
+      let elements = [];
+      
+      for (let y = 0; y < image.height; y += spacing) {
+        for (let x = 0; x < image.width; x++) {
+          let pixelColor = getPixelColorSafely(image, x, y);
+          let b = brightness(pixelColor);
+          let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+          
+          if (shouldDraw) {
+            // 根据亮度计算线条高度
+            let lineHeight = map(b, 0, brightnessThreshold, lineWeight * 2, 0);
+            
+            if (lineHeight > 0) {
+              // 根据useOriginalColors决定颜色
+              let strokeColor = useOriginalColors ? colorToHex(pixelColor) : lineColor;
+              
+              elements.push({
+                x: x,
+                y: y,
+                svg: `  <line x1="${x}" y1="${y - lineHeight/2}" x2="${x}" y2="${y + lineHeight/2}" stroke="${strokeColor}" stroke-width="1" stroke-linecap="round"/>\n`
+              });
+            }
+          }
+        }
+      }
+      return elements;
+    }
+
+    function collectLinesSVG(image, spacing, lineWeight, brightnessThreshold, lineColor, invertColors) {
+      let elements = [];
+      let angle = parseInt(document.getElementById('angle') ? document.getElementById('angle').value : 45);
+      
+      if (angle === 0) {
+        // 水平线条
+        for (let y = 0; y < image.height; y += spacing) {
+          let inSegment = false;
+          let segStartX = 0;
+          for (let x = 0; x <= image.width; x++) {
+            let pixelColor = x < image.width ? getPixelColorSafely(image, x, y) : color(255);
+            let b = brightness(pixelColor);
+            let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+            if (shouldDraw) {
+              if (!inSegment) {
+                inSegment = true;
+                segStartX = x;
+              }
+            } else if (inSegment) {
+              elements.push({
+                y: y,
+                svg: `  <line x1="${segStartX}" y1="${y}" x2="${x}" y2="${y}" stroke="${lineColor}" stroke-weight="${lineWeight}" stroke-linecap="square"/>\n`
+              });
+              inSegment = false;
+            }
+          }
+          if (inSegment) {
+            elements.push({
+              y: y,
+              svg: `  <line x1="${segStartX}" y1="${y}" x2="${image.width}" y2="${y}" stroke="${lineColor}" stroke-weight="${lineWeight}" stroke-linecap="square"/>\n`
+            });
+          }
+        }
+      } else if (angle === 90) {
+        // 垂直线条
+        for (let x = 0; x < image.width; x += spacing) {
+          let inSegment = false;
+          let segStartY = 0;
+          for (let y = 0; y <= image.height; y++) {
+            let pixelColor = y < image.height ? getPixelColorSafely(image, x, y) : color(255);
+            let b = brightness(pixelColor);
+            let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+            if (shouldDraw) {
+              if (!inSegment) {
+                inSegment = true;
+                segStartY = y;
+              }
+            } else if (inSegment) {
+              elements.push({
+                x: x,
+                svg: `  <line x1="${x}" y1="${segStartY}" x2="${x}" y2="${y}" stroke="${lineColor}" stroke-weight="${lineWeight}" stroke-linecap="square"/>\n`
+              });
+              inSegment = false;
+            }
+          }
+          if (inSegment) {
+            elements.push({
+              x: x,
+              svg: `  <line x1="${x}" y1="${segStartY}" x2="${x}" y2="${image.height}" stroke="${lineColor}" stroke-weight="${lineWeight}" stroke-linecap="square"/>\n`
+            });
+          }
+        }
+      } else {
+        // 斜线条
+        let angleRad = radians(angle);
+        let dx = cos(angleRad);
+        let dy = sin(angleRad);
+        let imgDiag = sqrt(sq(image.width) + sq(image.height));
+        let steps = Math.ceil((image.width + image.height) / spacing);
+
+        for (let i = -steps; i < steps; i++) {
+          let startX = image.width / 2 + i * spacing * dy;
+          let startY = image.height / 2 - i * spacing * dx;
+          let segments = [];
+          let inSegment = false;
+          let segStart = null;
+          let lastValidPoint = null;
+
+          for (let t = -imgDiag; t <= imgDiag; t++) {
+            let x = Math.round(startX + dx * t);
+            let y = Math.round(startY + dy * t);
+            if (x >= 0 && x < image.width && y >= 0 && y < image.height) {
+              let pixelColor = getPixelColorSafely(image, x, y);
+              let b = brightness(pixelColor);
+              lastValidPoint = {x, y};
+              let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+              if (shouldDraw) {
+                if (!inSegment) {
+                  inSegment = true;
+                  segStart = {x, y};
+                }
+              } else if (inSegment) {
+                segments.push({x1: segStart.x, y1: segStart.y, x2: x, y2: y});
+                inSegment = false;
+              }
+            } else if (inSegment && lastValidPoint) {
+              segments.push({x1: segStart.x, y1: segStart.y, x2: lastValidPoint.x, y2: lastValidPoint.y});
+              inSegment = false;
+            }
+          }
+          for (let seg of segments) {
+            elements.push({
+              index: i + steps,
+              svg: `  <line x1="${seg.x1}" y1="${seg.y1}" x2="${seg.x2}" y2="${seg.y2}" stroke="${lineColor}" stroke-weight="${lineWeight}" stroke-linecap="square"/>\n`
+            });
+          }
+        }
+      }
+      
+      return elements;
+    }
+
+    function collectGridSVG(image, spacing, lineWeight, brightnessThreshold, lineColor, invertColors) {
+      let elements = [];
+      // 保存当前角度
+      let originalAngle = document.getElementById('angle').value;
+      
+      // 收集水平线条
+      document.getElementById('angle').value = 0;
+      let hLines = collectLinesSVG(image, spacing, lineWeight, brightnessThreshold, lineColor, invertColors);
+      hLines.sort((a, b) => a.y - b.y);
+      
+      // 收集垂直线条
+      document.getElementById('angle').value = 90;
+      let vLines = collectLinesSVG(image, spacing, lineWeight, brightnessThreshold, lineColor, invertColors);
+      vLines.sort((a, b) => a.x - b.x);
+      
+      // 恢复原始角度
+      document.getElementById('angle').value = originalAngle;
+      
+      elements = [...hLines, ...vLines];
+      return elements;
+    }
+
+    function collectDotsSVG(image, spacing, dotSize, brightnessThreshold, lineColor, invertColors, useOriginalColors) {
+      let elements = [];
+      
+      // 获取点阵的新参数
+      let dotSizeVariation = document.getElementById('dot-size-variation') ? 
+        parseFloat(document.getElementById('dot-size-variation').value) : 1.0;
+      let densityVariation = document.getElementById('density-variation') ? 
+        parseFloat(document.getElementById('density-variation').value) : 1.0;
+      
+      let actualSpacing = Math.max(2, spacing / densityVariation);
+      
+      for (let x = 0; x < image.width; x += actualSpacing) {
+        for (let y = 0; y < image.height; y += actualSpacing) {
+          let pixelColor = getPixelColorSafely(image, x, y);
+          let b = brightness(pixelColor);
+          let shouldDraw = invertColors ? b > brightnessThreshold : b < brightnessThreshold;
+          if (shouldDraw) {
+            // 使用与绘制函数相同的尺寸计算
+            let baseSize = map(b, 0, 100, dotSize * dotSizeVariation * 2, dotSize);
+            let finalSize = Math.max(0.5, baseSize);
+            
+            // 根据useOriginalColors决定颜色
+            let fillColor = useOriginalColors ? colorToHex(pixelColor) : lineColor;
+            
+            elements.push({
+              x: x,
+              y: y,
+              svg: `  <circle cx="${x}" cy="${y}" r="${finalSize/2}" fill="${fillColor}"/>\n`
+            });
+          }
+        }
+      }
+      return elements;
+    }
+
+    function collectRoughTextureSVG(image, spacing, lineWeight, brightnessThreshold, lineColor, invertColors, useOriginalColors) {
+      let elements = [];
+      let noiseScale = 0.05;
+      let strokeLength = spacing * 0.8;
+      let density = Math.max(3, Math.floor(spacing / 4));
+      let seedValue = 42;
+      
+      function pseudoRandom() {
+        seedValue = (seedValue * 9301 + 49297) % 233280;
+        return seedValue / 233280;
+      }
+      
+      function pseudoNoise(x, y) {
+        return (Math.sin(x * 0.3 + y * 0.2) + Math.cos(x * 0.7 + y * 0.5) + 2) / 4;
+      }
+      
+      for (let y = 0; y < image.height; y += spacing) {
+        for (let x = 0; x < image.width; x += spacing) {
+          let avgBrightness = 0;
+          let count = 0;
+          for (let sy = 0; sy < spacing && y + sy < image.height; sy += 2) {
+            for (let sx = 0; sx < spacing && x + sx < image.width; sx += 2) {
+              avgBrightness += brightness(getPixelColorSafely(image, x + sx, y + sy));
+              count++;
+            }
+          }
+          avgBrightness = count > 0 ? avgBrightness / count : 255;
+          let shouldDraw = invertColors ? avgBrightness > brightnessThreshold : avgBrightness < brightnessThreshold;
+          if (shouldDraw) {
+            seedValue = (x * 10000) + y;
+            for (let i = 0; i < density; i++) {
+              let startX = x + pseudoRandom() * spacing;
+              let startY = y + pseudoRandom() * spacing;
+              let angle = pseudoNoise(startX * noiseScale, startY * noiseScale) * Math.PI * 2;
+              let strokeVariation = pseudoRandom() * 0.5 + 0.5;
+              let endX = startX + Math.cos(angle) * strokeLength * strokeVariation;
+              let endY = startY + Math.sin(angle) * strokeLength * strokeVariation;
+              let ctrlX = (startX + endX) / 2 + (pseudoRandom() - 0.5) * spacing/2;
+              let ctrlY = (startY + endY) / 2 + (pseudoRandom() - 0.5) * spacing/2;
+              
+              // 根据useOriginalColors决定颜色
+              let strokeColor = useOriginalColors ? colorToHex(getPixelColorSafely(image, x, y)) : lineColor;
+              
+              elements.push({
+                y: y,
+                color: strokeColor,
+                svg: `  <path d="M${startX.toFixed(2)},${startY.toFixed(2)} Q${ctrlX.toFixed(2)},${ctrlY.toFixed(2)} ${endX.toFixed(2)},${endY.toFixed(2)}" stroke="${strokeColor}" stroke-width="${lineWeight}" fill="none" stroke-linecap="round"/>\n`
+              });
+            }
+          }
+        }
+      }
+      return elements;
+    }
+
+    function exportSVG() {
+      if (!img) {
+        alert('请先上传图片');
+        return;
+      }
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('loading').textContent = '正在生成SVG...';
+
+      setTimeout(() => {
+        try {
+          let filterType = document.getElementById('filter-type').value;
+          let spacing = parseInt(document.getElementById('line-spacing').value);
+          let lineWeight = parseInt(document.getElementById('line-weight').value);
+          let brightnessThreshold = parseInt(document.getElementById('brightness-threshold').value);
+          let invertColors = document.getElementById('invert-colors').checked;
+          let lineColor = document.getElementById('line-color').value;
+          let bgColor = document.getElementById('bg-color').value;
+          // 如果是光栅效果，始终不使用反转
+          if (filterType === 'raster') {
+            invertColors = false;
+          } else if (invertColors) {
+            brightnessThreshold = 100 - brightnessThreshold;
+          }
+
+          // 只为特定滤镜获取原色设置
+          let useOriginalColors = false;
+          if (filterType === 'raster' || filterType === 'dots' || filterType === 'rough') {
+            useOriginalColors = document.getElementById('use-original-colors').checked;
+          }
+
+          let svgContent = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <rect width="${width}" height="${height}" fill="${bgColor}"/>
+  <g transform="translate(${offsetX}, ${offsetY})">
+`;
+
+          let elements = [];
+          switch(filterType) {
+            case 'raster':
+              elements = collectRasterSVG(img, spacing, lineWeight, brightnessThreshold, lineColor, invertColors, useOriginalColors);
+              elements.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
+              break;
+            case 'lines':
+              elements = collectLinesSVG(img, spacing, lineWeight, brightnessThreshold, lineColor, invertColors);
+              elements.sort((a, b) => a.y - b.y);
+              break;
+            case 'grid':
+              elements = collectGridSVG(img, spacing, lineWeight, brightnessThreshold, lineColor, invertColors);
+              elements.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
+              break;
+            case 'dots':
+              elements = collectDotsSVG(img, spacing, lineWeight, brightnessThreshold, lineColor, invertColors, useOriginalColors);
+              elements.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
+              break;
+            case 'rough':
+              elements = collectRoughTextureSVG(img, spacing, lineWeight, brightnessThreshold, lineColor, invertColors, useOriginalColors);
+              elements.sort((a, b) => a.y === b.y ? a.color.localeCompare(b.color) : a.y - b.y);
+              break;
+          }
+
+          for (let element of elements) {
+            svgContent += element.svg;
+          }
+
+          svgContent += '</g></svg>';
+
+          const blob = new Blob([svgContent], {type: 'image/svg+xml'});
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = 'styled-image.svg';
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+          document.getElementById('loading').style.display = 'none';
+        } catch (error) {
+          console.error('SVG导出错误:', error);
+          alert('SVG导出失败，请尝试其他设置');
+          document.getElementById('loading').style.display = 'none';
+        }
+      }, 100);
+    }
+
+    function downloadImage() {
+      if (!img) {
+        alert('请先上传图片');
+        return;
+      }
+      saveCanvas('styled-image', 'png');
+    }
+
+    // 添加缓存清理函数
+    function clearRenderCache() {
+      if (typeof renderCache !== 'undefined') {
+        renderCache = null;
+        lastRenderParams = null;
+      }
+    }
+
+    // 专门用于处理复杂渲染的性能优化函数
+    function smartRenderThrottle(func, delay = 100) {
+      let rafId = null;
+      let timeoutId = null;
+      
+      return function(...args) {
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+        }
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        
+        // 使用 RAF 确保渲染在下一帧开始
+        rafId = requestAnimationFrame(() => {
+          func.apply(this, args);
+          rafId = null;
+        });
+        
+        // 如果连续调用，延迟一定时间后再次调用以确保最终状态正确
+        timeoutId = setTimeout(() => {
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+          }
+          rafId = requestAnimationFrame(() => {
+            func.apply(this, args);
+            rafId = null;
+          });
+          timeoutId = null;
+        }, delay);
+      };
+    }
+  </script>
+</body>
+</html>

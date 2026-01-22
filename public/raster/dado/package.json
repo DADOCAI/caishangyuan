@@ -1,0 +1,16 @@
+{
+  "name": "raster-processor",
+  "version": "1.0.0",
+  "description": "光栅线条效果 - 图像风格化工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "keywords": ["image", "processing", "raster", "art"],
+  "author": "",
+  "license": "MIT"
+} 

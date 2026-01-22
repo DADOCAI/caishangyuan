@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dadoooo - 点线面视觉处理器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>dadoooo</h1>
+            <div class="subtitle">点线面视觉处理器</div>
+            
+            <!-- 滤镜选择触发器 -->
+            <div class="filter-trigger-section">
+                <button class="filter-trigger-btn" id="filterTriggerBtn">
+                    <span class="filter-trigger-text">滤镜效果</span>
+                    <span class="current-filter-indicator" id="currentFilterIndicator">光栅线条</span>
+                </button>
+            </div>
+            
+            <!-- 文件上传 -->
+            <div class="section">
+                <label class="upload-btn">
+                    <input type="file" id="imageInput" accept=".jpg,.jpeg,.png" style="display: none;">
+                    上传图片 <span class="shortcut">Ctrl+O</span>
+                </label>
+                <div class="file-info">[.jpg, .png]</div>
+            </div>
+
+
+
+            <!-- 图像预处理 -->
+            <div class="section">
+                <h3>图像预处理 <span class="toggle">-</span></h3>
+                
+                <div class="control-group">
+                    <label>模糊</label>
+                    <input type="range" id="blur" min="0" max="10" value="0" step="0.1">
+                    <span id="blurValue">0</span>
+                </div>
+
+                <div class="control-group">
+                    <label>颗粒</label>
+                    <input type="range" id="grain" min="0" max="200" value="0">
+                    <span id="grainValue">0</span>
+                </div>
+
+                <div class="control-group">
+                    <label>Gamma</label>
+                    <input type="range" id="gamma" min="0.1" max="3" value="0.9" step="0.1">
+                    <span id="gammaValue">0.9</span>
+                </div>
+
+                <div class="control-group">
+                    <label>黑点</label>
+                    <input type="range" id="blackPoint" min="0" max="255" value="46">
+                    <span id="blackPointValue">46</span>
+                </div>
+
+                <div class="control-group">
+                    <label>白点</label>
+                    <input type="range" id="whitePoint" min="0" max="255" value="255">
+                    <span id="whitePointValue">255</span>
+                </div>
+            </div>
+
+            <!-- 效果控制 -->
+            <div class="section">
+                <div class="control-group">
+                    <label>显示效果</label>
+                    <div class="button-group">
+                        <button id="showEffectOff">OFF</button>
+                        <button id="showEffectOn" class="active">ON</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>使用原色</label>
+                    <div class="button-group">
+                        <button id="useOriginalColorsOff">OFF</button>
+                        <button id="useOriginalColorsOn" class="active">ON</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>网点效果</label>
+                    <div class="button-group">
+                        <button id="useHalftoneOff" class="active">OFF</button>
+                        <button id="useHalftoneOn">ON</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 效果参数 -->
+            <div class="section effect-controls">
+                <div class="control-group">
+                    <label>阈值</label>
+                    <input type="range" id="threshold" min="0" max="255" value="255">
+                    <span id="thresholdValue">255</span>
+                </div>
+
+                <div class="control-group">
+                    <label>网格角度</label>
+                    <input type="range" id="gridAngle" min="0" max="180" value="0">
+                    <span id="gridAngleValue">0</span>
+                </div>
+
+                <div class="control-group">
+                    <label>Y 网格数</label>
+                    <input type="range" id="ySquares" min="10" max="200" value="50">
+                    <span id="ySquaresValue">50</span>
+                </div>
+
+                <div class="control-group">
+                    <label>X 网格数</label>
+                    <input type="range" id="xSquares" min="10" max="200" value="50">
+                    <span id="xSquaresValue">50</span>
+                </div>
+
+                <div class="control-group">
+                    <label>最小线宽</label>
+                    <input type="range" id="minLineWidth" min="0.1" max="10" value="0.5" step="0.1">
+                    <span id="minLineWidthValue">0.5</span>
+                </div>
+
+                <div class="control-group">
+                    <label>最大线宽</label>
+                    <input type="range" id="maxLineWidth" min="1" max="20" value="8" step="0.1">
+                    <span id="maxLineWidthValue">8</span>
+                </div>
+            </div>
+
+            <!-- 输出格式 -->
+            <div class="section">
+                <label>输出格式</label>
+                <div class="button-group">
+                    <button id="pngFormat" class="active">PNG</button>
+                    <button id="svgFormat">SVG</button>
+                </div>
+            </div>
+
+            <!-- 导出按钮 -->
+            <div class="section">
+                <button id="exportBtn" class="export-btn">
+                    导出画布 <span class="shortcut">Ctrl+S</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <canvas id="canvas"></canvas>
+            <div id="dropZone" class="drop-zone">
+                <div class="drop-message">
+                    <p>拖拽图片到这里</p>
+                    <p>或点击左侧"上传图片"按钮</p>
+                </div>
+            </div>
+            
+
+            
+            <!-- 画布底部控制栏 -->
+            <div class="canvas-bottom-controls">
+                <div class="canvas-size-control">
+                    <span class="canvas-size-label">画布大小</span>
+                    <button class="canvas-size-btn" id="canvasSizeBtn">
+                        <span id="canvasSizePercent">200%</span>
+                        <span class="canvas-size-arrow">▼</span>
+                    </button>
+                    <div class="canvas-size-dropdown" id="canvasSizeDropdown">
+                        <div class="canvas-size-option" data-size="10">10%</div>
+                        <div class="canvas-size-option" data-size="25">25%</div>
+                        <div class="canvas-size-option" data-size="50">50%</div>
+                        <div class="canvas-size-option" data-size="66">66%</div>
+                        <div class="canvas-size-option" data-size="75">75%</div>
+                        <div class="canvas-size-option" data-size="100">100%</div>
+                        <div class="canvas-size-option" data-size="125">125%</div>
+                        <div class="canvas-size-option" data-size="150">150%</div>
+                        <div class="canvas-size-option" data-size="200">200%</div>
+                    </div>
+                </div>
+            </div>
+
+    </div>
+
+    <!-- 独立的滤镜选择侧边栏 -->
+    <div class="filter-sidebar" id="filterSidebar">
+        <div class="filter-sidebar-header">
+            <h3>选择滤镜效果</h3>
+            <button class="filter-sidebar-close" id="filterSidebarClose">✕</button>
+        </div>
+        
+        <div class="filter-sidebar-content">
+            <div class="filter-grid">
+                <div class="filter-item active" data-filter="raster" title="光栅线条">
+                    <div class="filter-icon-wrapper">
+                        <div class="raster-preview"></div>
+                    </div>
+                    <div class="filter-text-wrapper">
+                        <div class="filter-item-name">光栅线条</div>
+                        <div class="filter-item-desc">竖向线条效果</div>
+                    </div>
+                </div>
+                
+                <div class="filter-item" data-filter="dots" title="点状效果">
+                    <div class="filter-icon-wrapper">
+                        <div class="dots-preview"></div>
+                    </div>
+                    <div class="filter-text-wrapper">
+                        <div class="filter-item-name">点状效果</div>
+                        <div class="filter-item-desc">圆点网格风格</div>
+                    </div>
+                </div>
+                
+                <div class="filter-item" data-filter="texture" title="纹理效果">
+                    <div class="filter-icon-wrapper">
+                        <div class="texture-preview"></div>
+                    </div>
+                    <div class="filter-text-wrapper">
+                        <div class="filter-item-name">纹理效果</div>
+                        <div class="filter-item-desc">粗糙杂乱质感</div>
+                    </div>
+                </div>
+                
+
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
