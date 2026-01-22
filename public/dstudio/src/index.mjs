@@ -11,18 +11,18 @@ const main = async () =>
 
     await app.init();
     await app.load([
-        { alias: 'overlay', src: 'images/overlay.png' },
-        { alias: 'map', src: 'images/displacement_map.png' },
-        { alias: 'fish1', src: 'images/displacement_fish1.png' },
-        { alias: 'fish2', src: 'images/displacement_fish2.png' },
-        { alias: 'fish3', src: 'images/displacement_fish3.png' },
-        { alias: 'fish4', src: 'images/displacement_fish4.png' },
-        { alias: 'fish5', src: 'images/displacement_fish5.png' },
-        { alias: 'lightmap', src: 'images/lightmap.png' },
-        { alias: 'colormap', src: 'images/colormap.png' },
+        { alias: 'overlay', src: '/dstudio/images/overlay.png' },
+        { alias: 'map', src: '/dstudio/images/displacement_map.png' },
+        { alias: 'fish1', src: '/dstudio/images/displacement_fish1.png' },
+        { alias: 'fish2', src: '/dstudio/images/displacement_fish2.png' },
+        { alias: 'fish3', src: '/dstudio/images/displacement_fish3.png' },
+        { alias: 'fish4', src: '/dstudio/images/displacement_fish4.png' },
+        { alias: 'fish5', src: '/dstudio/images/displacement_fish5.png' },
+        { alias: 'lightmap', src: '/dstudio/images/lightmap.png' },
+        { alias: 'colormap', src: '/dstudio/images/colormap.png' },
     ]);
 
-    await app.setBackgroundFromVideo('videos/1573_1764688855_raw.mp4');
+    await app.setBackgroundFromVideo('/dstudio/videos/1573_1764688855_raw.mp4');
     app.defaultBackgroundTexture = app.bg.texture;
 
     const allowed = [
@@ -99,14 +99,14 @@ const main = async () =>
     {
         if (watermarkImg) return watermarkImg;
         const candidates = [
-            '../logo1.png',
-            'images/logo.png',
-            'images/logo.webp',
-            'images/logo.jpg',
-            'images/logo.jpeg',
-            'images/watermark.png',
-            'images/watermark.webp',
-            'images/watermark.jpg',
+            '/logo1.png',
+            '/dstudio/images/logo.png',
+            '/dstudio/images/logo.webp',
+            '/dstudio/images/logo.jpg',
+            '/dstudio/images/logo.jpeg',
+            '/dstudio/images/watermark.png',
+            '/dstudio/images/watermark.webp',
+            '/dstudio/images/watermark.jpg',
         ];
         for (const src of candidates)
         {
