@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Header } from "./components/Header";
 import { Toaster } from "./components/ui/sonner";
 import { Home } from "./pages/Home";
@@ -26,6 +26,7 @@ export default function App() {
           <Toaster />
           <LoginDialog />
           <RegisterDialog />
+          <ToolQueryRedirect />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
@@ -45,4 +46,18 @@ export default function App() {
       </Router>
     </AuthProvider>
   );
+}
+
+function ToolQueryRedirect() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const search = location.search;
+  if (search) {
+    const params = new URLSearchParams(search);
+    const tool = params.get('tool');
+    if (tool && ['dstudio','halftone','ascii','raster'].includes(tool)) {
+      navigate(`/${tool}`, { replace: true });
+    }
+  }
+  return null;
 }
