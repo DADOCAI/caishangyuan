@@ -12,12 +12,12 @@ body {
 
 #container {
     position: fixed;
-    top: 0;
+    top: 57px;
     left: 0;
     right: 0;
     bottom: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 57px);
     overflow: hidden;
 }
 
@@ -336,6 +336,41 @@ body {
     max-width: 480px;
     user-select: none;
 }
+
+/* Top site header inside tool */
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 57px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+}
+.site-header .site-logo { height: 40px; width: auto; display: block; }
+.site-header .site-nav a {
+    color: #000;
+    font-weight: 700;
+    text-decoration: none;
+    margin-right: 24px;
+    letter-spacing: -0.02em;
+}
+.site-header .site-nav a:last-child { margin-right: 0; }
+.site-header .site-nav a:hover { opacity: .6; }
+.site-header .subscribe-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid #000;
+    border-radius: 6px;
+    color: #000;
+    text-decoration: none;
+}
+.site-header .subscribe-btn:hover { background: #000; color: #fff; }
 .site-footer .site-logo { width: 110px; height: auto; display: block; }
 .site-footer .site-tagline { color: #bbb; font-size: 12px; line-height: 1.5; }
 @media (max-width: 640px) {

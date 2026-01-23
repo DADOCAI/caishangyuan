@@ -20,6 +20,7 @@ body {
     color: var(--text-color);
     height: 100vh;
     overflow: hidden;
+    padding-top: 57px;
     display: flex;
     flex-direction: column;
 }
@@ -34,6 +35,14 @@ body {
     border-bottom: 1px solid var(--border-color);
     flex: 0 0 auto;
 }
+
+.site-header { position: fixed; top: 0; left: 0; right: 0; height: 57px; background: #fff; border-bottom: 1px solid var(--border-color); z-index: 300; display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 2rem; }
+.site-header .site-logo { height: 40px; width: auto; display: block; }
+.site-header .site-nav a { color: #000; font-weight: 700; text-decoration: none; margin-right: 24px; letter-spacing: -0.02em; }
+.site-header .site-nav a:last-child { margin-right: 0; }
+.site-header .site-nav a:hover { opacity: .6; }
+.site-header .subscribe-btn { display: inline-block; padding: 6px 12px; border: 1px solid #000; border-radius: 6px; color: #000; text-decoration: none; }
+.site-header .subscribe-btn:hover { background: #000; color: #fff; }
 
 .dado-container {
     display: none;

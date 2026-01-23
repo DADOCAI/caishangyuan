@@ -9,8 +9,33 @@
       <link rel="stylesheet" crossorigin href="/assets/index-CDC2SPaS.css">
     </head>
 
-    <body>
-      <div id="root"></div>
-    </body>
+  <body>
+    <div class="site-header">
+      <div class="site-header-left">
+        <a href="/" class="logo-link"><img class="site-logo" src="/logo1.png" alt="dadoooo logo" /></a>
+        <nav class="site-nav">
+          <a href="/">工具</a>
+          <a href="/library">资料库</a>
+          <a href="/activity">活动</a>
+          <a href="/about">关于</a>
+          <a href="/updates">更新</a>
+        </nav>
+      </div>
+      <div class="site-header-right">
+        <a href="/subscribe" class="subscribe-btn">订阅</a>
+      </div>
+    </div>
+    <style>
+      body { padding-top: 57px; }
+      .site-header { position: fixed; top: 0; left: 0; right: 0; height: 57px; background: #fff; border-bottom: 1px solid #eee; z-index: 10001; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
+      .site-header .site-logo { height: 40px; width: auto; display: block; }
+      .site-header .site-nav a { color: #000; font-weight: 700; text-decoration: none; margin-right: 24px; letter-spacing: -0.02em; }
+      .site-header .site-nav a:last-child { margin-right: 0; }
+      .site-header .site-nav a:hover { opacity: .6; }
+      .site-header .subscribe-btn { display: inline-block; padding: 6px 12px; border: 1px solid #000; border-radius: 6px; color: #000; text-decoration: none; }
+      .site-header .subscribe-btn:hover { background: #000; color: #fff; }
+    </style>
+    <div id="root"></div>
+  </body>
   </html>
   
