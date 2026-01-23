@@ -1,22 +1,6 @@
-body { margin: 0; overflow: hidden; padding-top: 57px; }
+body { margin: 0; overflow: hidden; }
 #info { position: absolute; top: 10px; left: 10px; color: #fff; font-family: sans-serif; }
 #brandLogo { position: fixed; top: 10px; left: 10px; width: 120px; height: auto; z-index: 10001; }
 #dropCircle { position: fixed; top: 50%; left: 50%; width: 800px; height: 800px; border: 3px solid #1e90ff; border-radius: 50%; background: transparent; pointer-events: none; display: none; transform: translate(-50%, -50%) scale(1); transition: transform 120ms ease-out, opacity 120ms ease-out; opacity: 0.9; z-index: 10000; }
 
-.site-header { position: fixed; top: 0; left: 0; right: 0; height: 57px; background: #fff; border-bottom: 1px solid #eee; z-index: 10001; }
-.site-header .site-header-inner { height: 57px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; }
-.site-header .logo { height: 40px; width: auto; display: block; }
-.site-header .logo:hover { animation: flicker .6s ease-in-out; }
-.site-header .site-nav { display: flex; gap: 32px; align-items: center; height: 57px; }
-.site-header .site-nav a { color: #000; text-decoration: none; position: relative; display: flex; align-items: center; height: 57px; }
-.site-header .site-nav a:hover { opacity: .6; }
-.site-header .site-nav a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #000; }
-.site-header .site-header-left { display: flex; align-items: center; gap: 32px; }
-.site-header .site-header-right { display: flex; align-items: center; gap: 24px; }
-.site-header .icon-btn { border: none; background: transparent; cursor: pointer; padding: 2px; }
-.site-header .icon-btn:hover { opacity: .6; }
-.site-header .subscribe-btn { display: inline-block; padding: 6px 12px; border: 1px solid #000; border-radius: 6px; color: #000; text-decoration: none; }
-.site-header .subscribe-btn:hover { background: #000; color: #fff; }
-.site-header .login-link { text-decoration: none; color: #000; font-size: 14px; }
-
-@keyframes flicker { 0%,100%{opacity:1;} 10%{opacity:.8;} 20%{opacity:1;} 30%{opacity:.9;} 40%{opacity:1;} 50%{opacity:.85;} 60%{opacity:1;} }
+/* removed internal header styles; tools run under SPA header */
