@@ -338,7 +338,6 @@ body {
 }
 
 /* Top site header inside tool */
-/* removed internal site-header; tools are embedded under SPA header */
 .site-footer .site-logo { width: 110px; height: auto; display: block; }
 .site-footer .site-tagline { color: #bbb; font-size: 12px; line-height: 1.5; }
 @media (max-width: 640px) {
