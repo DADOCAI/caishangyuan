@@ -9,19 +9,28 @@
 </head>
 <body>
   <div class="site-header">
-    <div class="site-header-left">
-      <a href="/" class="logo-link"><img class="site-logo" src="/logo1.png" alt="dadoooo logo" /></a>
-      <nav class="site-nav">
-        <a href="/">工具</a>
-        <a href="/library">资料库</a>
-        <a href="/activity">活动</a>
-        <a href="/about">关于</a>
-        <a href="/updates">更新</a>
-      </nav>
-    </div>
-    <div class="site-header-right">
-      <a href="/subscribe" class="subscribe-btn">订阅</a>
-    </div>
+    <nav class="site-header-inner">
+      <div class="site-header-left">
+        <a href="/" class="logo-link"><img class="logo" src="/logo1.png" alt="dado logo" /></a>
+        <div class="site-nav" style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Microsoft Yahei', 'SimHei', sans-serif; font-weight: 700; letter-spacing: -0.02em;">
+          <a href="/" class="active">工具</a>
+          <a href="/library">资料库</a>
+          <a href="/activity">活动</a>
+          <a href="/about">关于</a>
+          <a href="/updates">更新</a>
+        </div>
+      </div>
+      <div class="site-header-right">
+        <button class="icon-btn" aria-label="消息">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="通知">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>
+        </button>
+        <a href="/subscribe" class="subscribe-btn">订阅</a>
+        <a href="/profile" class="login-link">登录</a>
+      </div>
+    </nav>
   </div>
   
   <input id="fileInput" type="file" accept="image/*" style="display:none" />
